@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 
 const size = {
     width: window.innerWidth,
@@ -8,7 +9,7 @@ const size = {
 const handleResize = (camera: THREE.PerspectiveCamera, render: THREE.WebGLRenderer, scene: THREE.Scene) => {
     size.width = window.innerWidth;
     size.height = window.innerHeight;
-    
+
     camera.aspect = size.width / size.height;
     camera.updateProjectionMatrix();
 
@@ -16,13 +17,15 @@ const handleResize = (camera: THREE.PerspectiveCamera, render: THREE.WebGLRender
     render.render(scene, camera);
 }
 
+let camera: THREE.PerspectiveCamera, scene: THREE.Scene, render: THREE.WebGLRenderer, controls: OrbitControls;
+
 const init = () => {
     // 1. Create Camera
-    const camera = new THREE.PerspectiveCamera(75, size.width / size.height, 0.1, 1000);
+    camera = new THREE.PerspectiveCamera(75, size.width / size.height, 0.1, 1000);
     camera.position.z = 2;
 
     // 2. Create Scene
-    const scene = new THREE.Scene();
+    scene = new THREE.Scene();
     scene.background = new THREE.Color('skyblue')
 
     // 3. Create obj
@@ -33,7 +36,7 @@ const init = () => {
     scene.add(cube)
 
     // 5. Create Render
-    const render = new THREE.WebGLRenderer();
+    render = new THREE.WebGLRenderer();
     render.setSize(size.width, size.height);
     render.setPixelRatio(window.devicePixelRatio);
     render.render(scene, camera);
@@ -43,6 +46,17 @@ const init = () => {
 
     // 7. Auto resize
     addEventListener('resize', () => handleResize(camera, render, scene))
+
+    // 8. Add controls
+    controls = new OrbitControls(camera, render.domElement)
+
+    animate()
+}
+
+const animate = () => {
+    render.render(scene, camera)
+
+    requestAnimationFrame(animate)
 }
 
 addEventListener('load', init)
