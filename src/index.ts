@@ -25,8 +25,8 @@ let camera: THREE.PerspectiveCamera, scene: THREE.Scene, render: THREE.WebGLRend
 
 const init = () => {
     // 1. Create Camera
-    camera = new THREE.PerspectiveCamera(75, size.width / size.height, 0.1, 1000);
-    camera.position.z = 2;
+    camera = new THREE.PerspectiveCamera(75, size.width / size.height, 1, 1000);
+    camera.position.z = 20;
 
     // 2. Create Scene
     scene = new THREE.Scene();
@@ -37,7 +37,12 @@ const init = () => {
     // const cube = new THREE.Mesh(geometry);
 
     gltfLoader.load(modelPath, (gltf) => {
-        scene.add(gltf.scene)
+        const mesh = gltf.scene.children[0];
+        for(let k in mesh.children) {
+            mesh.children[k].castShadow = true
+        }
+        mesh.scale.set(5, 5, 5)
+        scene.add(mesh)
     })
     
     // 4. Add obj to scene
@@ -47,6 +52,7 @@ const init = () => {
     render = new THREE.WebGLRenderer();
     render.setSize(size.width, size.height);
     render.setPixelRatio(window.devicePixelRatio);
+    render.shadowMap.enabled = true;
     render.render(scene, camera);
 
     // 6. Append dom to body
@@ -59,9 +65,20 @@ const init = () => {
     controls = new OrbitControls(camera, render.domElement)
 
     // 9. Add light
-    const dirLight = new THREE.DirectionalLight(0xffffff, 1)
-    dirLight.position.set(10, 50, 10);
-    scene.add(dirLight)
+    const light = new THREE.DirectionalLight(0xffffff, 1)
+    light.position.set(0, 10, 0);
+    light.castShadow = true;
+    scene.add(light)
+
+    // 10. Add plane
+    const planeGeometry = new THREE.PlaneGeometry(100, 100)
+    const planeMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff })
+    planeMaterial.color.setHSL( 0.095, 1, 0.75 );
+    const plane = new THREE.Mesh(planeGeometry, planeMaterial)
+    plane.position.y = -10;
+    plane.rotation.x = - Math.PI / 2;
+    plane.receiveShadow = true;
+    scene.add(plane)
 
     animate()
 }
