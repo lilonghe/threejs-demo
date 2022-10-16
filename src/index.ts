@@ -1,6 +1,10 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 
+const gltfLoader = new GLTFLoader();
+
+const modelPath = './bird.glb';
 const size = {
     width: window.innerWidth,
     height: window.innerHeight
@@ -29,11 +33,15 @@ const init = () => {
     scene.background = new THREE.Color('skyblue')
 
     // 3. Create obj
-    const geometry = new THREE.BoxGeometry(1,1,1);
-    const cube = new THREE.Mesh(geometry);
+    // const geometry = new THREE.BoxGeometry(1,1,1);
+    // const cube = new THREE.Mesh(geometry);
+
+    gltfLoader.load(modelPath, (gltf) => {
+        scene.add(gltf.scene)
+    })
     
     // 4. Add obj to scene
-    scene.add(cube)
+    // scene.add(cube)
 
     // 5. Create Render
     render = new THREE.WebGLRenderer();
