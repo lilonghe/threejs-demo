@@ -1,14 +1,16 @@
 import * as THREE from 'three'
+import { Loader } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 
 const gltfLoader = new GLTFLoader();
 
-const modelPath = './bird.glb';
+const modelPath = './butterfly.glb';
 const size = {
     width: window.innerWidth,
     height: window.innerHeight
 }
+const mixers: THREE.AnimationMixer[] = [], clock = new THREE.Clock()
 
 const handleResize = (camera: THREE.PerspectiveCamera, render: THREE.WebGLRenderer, scene: THREE.Scene) => {
     size.width = window.innerWidth;
@@ -23,6 +25,16 @@ const handleResize = (camera: THREE.PerspectiveCamera, render: THREE.WebGLRender
 
 let camera: THREE.PerspectiveCamera, scene: THREE.Scene, render: THREE.WebGLRenderer, controls: OrbitControls;
 
+const loopCastShadow = (mesh: THREE.Object3D) => {
+    mesh.castShadow = true
+    for(let k in mesh.children) {
+        mesh.children[k].castShadow = true
+        if (mesh.children[k].children) {
+            loopCastShadow(mesh.children[k])
+        }
+    }
+}
+
 const init = () => {
     // 1. Create Camera
     camera = new THREE.PerspectiveCamera(75, size.width / size.height, 1, 1000);
@@ -36,12 +48,17 @@ const init = () => {
     // const geometry = new THREE.BoxGeometry(1,1,1);
     // const cube = new THREE.Mesh(geometry);
 
-    gltfLoader.load(modelPath, (gltf) => {
+    gltfLoader.loadAsync(modelPath).then(gltf => {
         const mesh = gltf.scene.children[0];
-        for(let k in mesh.children) {
-            mesh.children[k].castShadow = true
-        }
-        mesh.scale.set(5, 5, 5)
+        loopCastShadow(mesh);
+        mesh.scale.set(15, 15, 15);
+
+        const clip = gltf.animations[0];
+        const mixer = new THREE.AnimationMixer(mesh);
+        const action = mixer.clipAction(clip);
+        mixers.push(mixer);
+        action.play();
+
         scene.add(mesh)
     })
     
@@ -85,8 +102,12 @@ const init = () => {
 
 const animate = () => {
     render.render(scene, camera)
-
     requestAnimationFrame(animate)
+
+    let delta = clock.getDelta();
+    mixers.forEach((_, i) => {
+        mixers[i].update(delta)
+    })
 }
 
 addEventListener('load', init)
